@@ -405,5 +405,7 @@ app.get('/api/stats/admin', authMiddleware, roleMiddleware('admin'), async (req,
 
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
-var PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log('🚀 Server running on http://localhost:' + PORT));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
