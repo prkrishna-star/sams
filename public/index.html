@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAMS - Student Attendance Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- SVG Gradient Definitions -->
+    <svg width="0" height="0" style="position:absolute">
+        <defs>
+            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#00f0ff"/>
+                <stop offset="100%" style="stop-color:#00e5a0"/>
+            </linearGradient>
+            <linearGradient id="progressGradientWarn" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#ffd93d"/>
+                <stop offset="100%" style="stop-color:#f39c12"/>
+            </linearGradient>
+            <linearGradient id="progressGradientDanger" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#ff6b6b"/>
+                <stop offset="100%" style="stop-color:#ee5a24"/>
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <canvas id="particle-canvas"></canvas>
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+        <div class="bg-orb bg-orb-4"></div>
+        <div class="bg-orb bg-orb-5"></div>
+        <div class="bg-grid"></div>
+        <div class="bg-scanline"></div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loader-content">
+            <div class="loader-ring">
+                <div class="loader-ring-inner"></div>
+                <div class="loader-ring-inner-2"></div>
+            </div>
+            <p class="loader-text">Processing...</p>
+        </div>
+    </div>
+
+    <!-- LOGIN PAGE -->
+    <div id="login-page" class="page active">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="login-logo"><i class="fas fa-fingerprint"></i></div>
+                    <h1 class="login-title">SA<span>MS</span></h1>
+                    <p class="login-subtitle">Student Attendance Management System</p>
+                </div>
+                <form id="login-form" class="login-form">
+                    <div class="form-group">
+                        <div class="input-icon-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="login-email" placeholder="Email Address" required autocomplete="email">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-icon-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('login-password', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-glow login-btn">
+                        <span class="btn-text">Sign In</span>
+                        <span class="btn-loader hidden"><i class="fas fa-spinner fa-spin"></i></span>
+                    </button>
+                </form>
+                <div class="login-footer">
+                    <p>Secure access with JWT authentication</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD LAYOUT -->
+    <div id="dashboard-page" class="page">
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <i class="fas fa-fingerprint"></i>
+                    <span class="sidebar-brand">Attend<span>Ease</span></span>
+                </div>
+                <button class="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav" id="sidebar-nav"></nav>
+            <div class="sidebar-footer">
+                <button class="sidebar-footer-btn" onclick="openChangePasswordModal()">
+                    <i class="fas fa-key"></i><span>Change Password</span>
+                </button>
+                <button class="sidebar-footer-btn logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h2 class="page-title" id="page-title">Dashboard</h2>
+                </div>
+                <div class="topbar-right">
+                    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+                        <i class="fas fa-moon" id="theme-icon"></i>
+                    </button>
+                    <div class="user-profile" onclick="toggleProfileMenu()">
+                        <div class="user-avatar" id="user-avatar">A</div>
+                        <div class="user-info">
+                            <span class="user-name" id="user-name">Admin</span>
+                            <span class="user-role" id="user-role">Administrator</span>
+                        </div>
+                        <i class="fas fa-chevron-down profile-arrow"></i>
+                        <div class="profile-dropdown hidden" id="profile-dropdown">
+                            <button onclick="openChangePasswordModal()">
+                                <i class="fas fa-key"></i> Change Password
+                            </button>
+                            <button onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-area" id="content-area">
+                <!-- Admin Dashboard -->
+                <section id="admin-dashboard" class="content-section hidden">
+                    <div class="stats-grid" id="admin-stats"></div>
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-clock"></i> Recent Activity</h3>
+                            </div>
+                            <div class="card-body" id="recent-activity">
+                                <p class="empty-state">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-chart-pie"></i> Quick Overview</h3>
+                            </div>
+                            <div class="card-body" id="quick-overview">
+                                <p class="empty-state">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Admin Departments -->
+                <section id="admin-departments" class="content-section hidden">
+                    <div class="section-header">
+                        <h3>Manage Departments</h3>
+                        <button class="btn btn-primary btn-glow" onclick="openDeptModal()">
+                            <i class="fas fa-plus"></i> Add Department
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="dept-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Code</th>
+                                    <th>HOD</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Admin Classes -->
+                <section id="admin-classes" class="content-section hidden">
+                    <div class="section-header">
+                        <h3>Manage Classes</h3>
+                        <button class="btn btn-primary btn-glow" onclick="openClassModal()">
+                            <i class="fas fa-plus"></i> Add Class
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="class-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Code</th>
+                                    <th>Department</th>
+                                    <th>Semester</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Admin Subjects -->
+                <section id="admin-subjects" class="content-section hidden">
+                    <div class="section-header">
+                        <h3>Manage Subjects</h3>
+                        <button class="btn btn-primary btn-glow" onclick="openSubjectModal()">
+                            <i class="fas fa-plus"></i> Add Subject
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="subject-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Code</th>
+                                    <th>Department</th>
+                                    <th>Type</th>
+                                    <th>Credits</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Admin Teachers -->
+                <section id="admin-teachers" class="content-section hidden">
+                    <div class="section-header">
+                        <h3>Manage Teachers</h3>
+                        <button class="btn btn-primary btn-glow" onclick="openUserModal('teacher')">
+                            <i class="fas fa-plus"></i> Add Teacher
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="teacher-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Subjects</th>
+                                    <th>Classes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Admin Students -->
+                <section id="admin-students" class="content-section hidden">
+                    <div class="section-header">
+                        <h3>Manage Students</h3>
+                        <div class="section-filters">
+                            <select id="filter-dept" onchange="onFilterDeptChange()">
+                                <option value="">All Departments</option>
+                            </select>
+                            <select id="filter-class" onchange="onFilterClassChange()">
+                                <option value="">All Classes</option>
+                            </select>
+                            <button class="btn btn-primary btn-glow" onclick="openUserModal('student')">
+                                <i class="fas fa-plus"></i> Add Student
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="student-table">
+                            <thead>
+                                <tr>
+                                    <th>Roll No</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Class</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Teacher Dashboard -->
+                <section id="teacher-dashboard" class="content-section hidden">
+                    <div class="stats-grid" id="teacher-stats"></div>
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-book"></i> My Subjects</h3>
+                            </div>
+                            <div class="card-body" id="teacher-subjects-list"></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-chalkboard"></i> My Classes</h3>
+                            </div>
+                            <div class="card-body" id="teacher-classes-list"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Attendance Marking -->
+                <section id="attendance-marking" class="content-section hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-clipboard-check"></i> Mark Attendance</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="attendance-filters">
+                                <div class="form-group">
+                                    <label>Select Date</label>
+                                    <input type="date" id="att-date" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Select Class</label>
+                                    <select id="att-class" class="form-input" onchange="onAttClassChange()">
+                                        <option value="">-- Choose Class --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Select Subject</label>
+                                    <select id="att-subject" class="form-input">
+                                        <option value="">-- Choose Subject --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="align-self:flex-end;">
+                                    <button class="btn btn-primary btn-glow" onclick="loadStudentsForAttendance()">
+                                        <i class="fas fa-search"></i> Load
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="attendance-students-container" class="hidden">
+                                <div class="attendance-bulk-actions">
+                                    <button class="btn btn-success" onclick="markAllPresent()">
+                                        <i class="fas fa-check-double"></i> All Present
+                                    </button>
+                                    <button class="btn btn-danger" onclick="markAllAbsent()">
+                                        <i class="fas fa-times-circle"></i> All Absent
+                                    </button>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table" id="attendance-student-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Roll No</th>
+                                                <th>Student Name</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                                <div class="form-actions">
+                                    <button class="btn btn-primary btn-glow btn-lg" onclick="submitAttendance()">
+                                        <i class="fas fa-save"></i> Submit Attendance
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reports -->
+                <section id="reports-page" class="content-section hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-bar"></i> Attendance Reports</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="report-filters">
+                                <div class="form-group">
+                                    <label>Period</label>
+                                    <select id="report-period" class="form-input" onchange="handleReportPeriodChange()">
+                                        <option value="today">Today</option>
+                                        <option value="week">This Week</option>
+                                        <option value="month" selected>This Month</option>
+                                        <option value="custom">Custom Range</option>
+                                    </select>
+                                </div>
+                                <div class="form-group hidden" id="custom-range-start">
+                                    <label>From</label>
+                                    <input type="date" id="report-from" class="form-input">
+                                </div>
+                                <div class="form-group hidden" id="custom-range-end">
+                                    <label>To</label>
+                                    <input type="date" id="report-to" class="form-input">
+                                </div>
+                                <div class="form-group" id="report-class-filter">
+                                    <label>Class</label>
+                                    <select id="report-class" class="form-input">
+                                        <option value="">All Classes</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="report-subject-filter">
+                                    <label>Subject</label>
+                                    <select id="report-subject" class="form-input">
+                                        <option value="">All Subjects</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="align-self:flex-end;">
+                                    <button class="btn btn-primary btn-glow" onclick="generateReport()">
+                                        <i class="fas fa-filter"></i> Generate
+                                    </button>
+                                </div>
+                                <div class="form-group" style="align-self:flex-end;">
+                                    <button class="btn btn-accent" onclick="printReport()">
+                                        <i class="fas fa-print"></i> Print
+                                    </button>
+                                </div>
+                                <div class="form-group" style="align-self:flex-end;">
+                                    <button class="btn btn-success" onclick="exportReportCSV()">
+                                        <i class="fas fa-file-csv"></i> CSV
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="report-results" class="report-results">
+                                <p class="empty-state">Select filters and generate report</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Student Dashboard -->
+                <section id="student-dashboard" class="content-section hidden">
+                    <div class="student-overview-card">
+                        <div class="student-overview-circle">
+                            <svg viewBox="0 0 120 120" class="progress-ring">
+                                <circle cx="60" cy="60" r="54" class="progress-ring-bg"/>
+                                <circle cx="60" cy="60" r="54" class="progress-ring-fill" id="overall-progress-ring"/>
+                            </svg>
+                            <div class="progress-ring-text">
+                                <span class="progress-value" id="overall-percentage">0%</span>
+                                <span class="progress-label">Overall</span>
+                            </div>
+                        </div>
+                        <div class="student-overview-info">
+                            <h3 id="student-name-display">Student Name</h3>
+                            <p id="student-details-display">Roll No | Department | Class</p>
+                            <div class="student-mini-stats">
+                                <div class="mini-stat">
+                                    <span class="mini-stat-value" id="student-total-classes">0</span>
+                                    <span class="mini-stat-label">Total</span>
+                                </div>
+                                <div class="mini-stat">
+                                    <span class="mini-stat-value text-success" id="student-present-classes">0</span>
+                                    <span class="mini-stat-label">Present</span>
+                                </div>
+                                <div class="mini-stat">
+                                    <span class="mini-stat-value text-danger" id="student-absent-classes">0</span>
+                                    <span class="mini-stat-label">Absent</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-book-open"></i> Subject-wise Attendance</h3>
+                            <button class="btn btn-accent" onclick="printStudentReport()">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="subject-attendance-list" class="subject-attendance-list"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-history"></i> Attendance History</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="data-table" id="student-history-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Subject</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Change Password Modal -->
+    <div id="modal-change-password" class="modal hidden">
+        <div class="modal-overlay" onclick="closeModal('modal-change-password')"></div>
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3><i class="fas fa-key"></i> Change Password</h3>
+                <button class="modal-close" onclick="closeModal('modal-change-password')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form onsubmit="changePassword(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" id="cp-current" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="cp-new" class="form-input" minlength="6" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" id="cp-confirm" class="form-input" minlength="6" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('modal-change-password')">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-glow">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Department Modal -->
+    <div id="modal-department" class="modal hidden">
+        <div class="modal-overlay" onclick="closeModal('modal-department')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="dept-modal-title"><i class="fas fa-building"></i> Add Department</h3>
+                <button class="modal-close" onclick="closeModal('modal-department')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form onsubmit="saveDepartment(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="dept-id">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="dept-name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Code</label>
+                        <input type="text" id="dept-code" class="form-input" required placeholder="e.g. CSE">
+                    </div>
+                    <div class="form-group">
+                        <label>HOD</label>
+                        <input type="text" id="dept-hod" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="dept-desc" class="form-input" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('modal-department')">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-glow">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Class Modal -->
+    <div id="modal-class" class="modal hidden">
+        <div class="modal-overlay" onclick="closeModal('modal-class')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="class-modal-title"><i class="fas fa-chalkboard"></i> Add Class</h3>
+                <button class="modal-close" onclick="closeModal('modal-class')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form onsubmit="saveClass(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="class-id">
+                    <div class="form-group">
+                        <label>Class Name</label>
+                        <input type="text" id="class-name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Code</label>
+                        <input type="text" id="class-code" class="form-input" required placeholder="e.g. CSE-A">
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select id="class-dept" class="form-input" required>
+                            <option value="">Select</option>
+                        </select>
+                    </div>
+                    <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr">
+                        <div class="form-group">
+                            <label>Semester</label>
+                            <select id="class-sem" class="form-input" required>
+                                <option value="">Select</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Year</label>
+                            <select id="class-year" class="form-input" required>
+                                <option value="">Select</option>
+                                <option value="1">1st</option>
+                                <option value="2">2nd</option>
+                                <option value="3">3rd</option>
+                                <option value="4">4th</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('modal-class')">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-glow">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Subject Modal -->
+    <div id="modal-subject" class="modal hidden">
+        <div class="modal-overlay" onclick="closeModal('modal-subject')"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="subject-modal-title"><i class="fas fa-book"></i> Add Subject</h3>
+                <button class="modal-close" onclick="closeModal('modal-subject')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form onsubmit="saveSubject(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="subject-id">
+                    <div class="form-group">
+                        <label>Subject Name</label>
+                        <input type="text" id="subject-name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Code</label>
+                        <input type="text" id="subject-code" class="form-input" required placeholder="e.g. CS201">
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select id="subject-dept" class="form-input" required>
+                            <option value="">Select Department</option>
+                        </select>
+                    </div>
+                    <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr">
+                        <div class="form-group">
+                            <label>Semester</label>
+                            <select id="subject-sem" class="form-input" required>
+                                <option value="">Select</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="subject-type" class="form-input" required>
+                                <option value="Theory">Theory</option>
+                                <option value="Lab">Lab</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Credits</label>
+                            <input type="number" id="subject-credits" class="form-input" value="3" min="1" max="6" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('modal-subject')">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-glow">Save Subject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User (Teacher/Student) Modal -->
+    <div id="modal-user" class="modal hidden">
+        <div class="modal-overlay" onclick="closeModal('modal-user')"></div>
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="user-modal-title"><i class="fas fa-user-plus"></i> Add User</h3>
+                <button class="modal-close" onclick="closeModal('modal-user')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="user-id">
+                <input type="hidden" id="user-role-type">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name <span style="color:var(--accent4)">*</span></label>
+                        <input type="text" id="user-name" name="user-name" class="form-input" placeholder="Enter full name" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label>Email <span style="color:var(--accent4)">*</span></label>
+                        <input type="email" id="user-email" class="form-input" placeholder="Enter email" autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-row" id="user-password-row">
+                    <div class="form-group">
+                        <label>Password <span style="color:var(--accent4)">*</span></label>
+                        <input type="password" id="user-password" class="form-input" placeholder="Min 6 characters" autocomplete="new-password">
+                    </div>
+                </div>
+                <div id="teacher-fields" class="hidden">
+                    <div class="form-group">
+                        <label>Assign Subjects</label>
+                        <div id="teacher-subjects-checkboxes" class="checkbox-group">
+                            <p class="empty-state" style="padding:10px">Loading subjects...</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Assign Classes</label>
+                        <div id="teacher-classes-checkboxes" class="checkbox-group">
+                            <p class="empty-state" style="padding:10px">Loading classes...</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="student-fields" class="hidden">
+                    <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr">
+                        <div class="form-group">
+                            <label>Roll Number <span style="color:var(--accent4)">*</span></label>
+                            <input type="text" id="student-roll" class="form-input" placeholder="e.g. 21CS050" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label>Department <span style="color:var(--accent4)">*</span></label>
+                            <select id="student-dept" class="form-input" onchange="handleDeptChangeForStudent()">
+                                <option value="">Loading...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Class <span style="color:var(--accent4)">*</span></label>
+                            <select id="student-class" class="form-input">
+                                <option value="">-- Choose Dept First --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="closeModal('modal-user')">Cancel</button>
+                <button type="button" id="save-user-btn" class="btn btn-primary btn-glow" onclick="handleSaveUser()">
+                    <i class="fas fa-save"></i> Save User
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div id="modal-confirm" class="modal hidden">
+        <div class="modal-overlay" onclick="closeModal('modal-confirm')"></div>
+        <div class="modal-content modal-sm">
+            <div class="modal-header modal-header-danger">
+                <h3><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h3>
+                <button class="modal-close" onclick="closeModal('modal-confirm')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message">Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('modal-confirm')">Cancel</button>
+                <button class="btn btn-danger" id="confirm-action-btn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/teacher.js"></script>
+    <script src="js/student.js"></script>
+    <script src="js/reports.js"></script>
+</body>
+</html>
